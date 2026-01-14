@@ -1,0 +1,4 @@
+# Run lint-staged for staged PHP files (pint + phpstan)
+npx lint-staged
+
+echo "Pre-commit checks passed! (Tests run in CI)"

@@ -1,0 +1,209 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Primary - Blue (Football theme) */
+        --color-primary: #1d4ed8;
+        --color-primary-dark: #1e40af;
+        --color-primary-light: #3b82f6;
+
+        /* Accent - Red (Football theme) */
+        --color-accent: #dc2626;
+        --color-accent-dark: #b91c1c;
+        --color-accent-light: #ef4444;
+
+        /* Success - Green */
+        --color-success: #16a34a;
+        --color-success-dark: #15803d;
+        --color-success-light: #22c55e;
+
+        /* Warning - Yellow */
+        --color-warning: #eab308;
+        --color-warning-dark: #ca8a04;
+        --color-warning-light: #facc15;
+
+        /* Danger - Red */
+        --color-danger: #dc2626;
+        --color-danger-dark: #b91c1c;
+        --color-danger-light: #ef4444;
+    }
+}
+
+@layer utilities {
+    /* Primary color utilities */
+    .bg-primary {
+        background-color: var(--color-primary);
+    }
+
+    .bg-primary-dark {
+        background-color: var(--color-primary-dark);
+    }
+
+    .bg-primary-light {
+        background-color: var(--color-primary-light);
+    }
+
+    .text-primary {
+        color: var(--color-primary);
+    }
+
+    .text-primary-dark {
+        color: var(--color-primary-dark);
+    }
+
+    .text-primary-light {
+        color: var(--color-primary-light);
+    }
+
+    .border-primary {
+        border-color: var(--color-primary);
+    }
+
+    .ring-primary {
+        --tw-ring-color: var(--color-primary);
+    }
+
+    .hover\:bg-primary:hover {
+        background-color: var(--color-primary);
+    }
+
+    .hover\:bg-primary-dark:hover {
+        background-color: var(--color-primary-dark);
+    }
+
+    .hover\:text-primary:hover {
+        color: var(--color-primary);
+    }
+
+    .hover\:text-primary-dark:hover {
+        color: var(--color-primary-dark);
+    }
+
+    .focus\:border-primary:focus {
+        border-color: var(--color-primary);
+    }
+
+    .focus\:ring-primary:focus {
+        --tw-ring-color: var(--color-primary);
+    }
+
+    .focus\:bg-primary-dark:focus {
+        background-color: var(--color-primary-dark);
+    }
+
+    .active\:bg-primary-dark:active {
+        background-color: var(--color-primary-dark);
+    }
+
+    /* Accent color utilities */
+    .bg-accent {
+        background-color: var(--color-accent);
+    }
+
+    .bg-accent-dark {
+        background-color: var(--color-accent-dark);
+    }
+
+    .bg-accent-light {
+        background-color: var(--color-accent-light);
+    }
+
+    .text-accent {
+        color: var(--color-accent);
+    }
+
+    .text-accent-dark {
+        color: var(--color-accent-dark);
+    }
+
+    .border-accent {
+        border-color: var(--color-accent);
+    }
+
+    .hover\:bg-accent:hover {
+        background-color: var(--color-accent);
+    }
+
+    .hover\:bg-accent-dark:hover {
+        background-color: var(--color-accent-dark);
+    }
+
+    /* Success color utilities */
+    .bg-success {
+        background-color: var(--color-success);
+    }
+
+    .bg-success-dark {
+        background-color: var(--color-success-dark);
+    }
+
+    .text-success {
+        color: var(--color-success);
+    }
+
+    .text-success-dark {
+        color: var(--color-success-dark);
+    }
+
+    .border-success {
+        border-color: var(--color-success);
+    }
+
+    .hover\:bg-success:hover {
+        background-color: var(--color-success);
+    }
+
+    .hover\:bg-success-dark:hover {
+        background-color: var(--color-success-dark);
+    }
+
+    /* Warning color utilities */
+    .bg-warning {
+        background-color: var(--color-warning);
+    }
+
+    .text-warning {
+        color: var(--color-warning);
+    }
+
+    .border-warning {
+        border-color: var(--color-warning);
+    }
+
+    /* Danger color utilities */
+    .bg-danger {
+        background-color: var(--color-danger);
+    }
+
+    .text-danger {
+        color: var(--color-danger);
+    }
+
+    .border-danger {
+        border-color: var(--color-danger);
+    }
+
+    .hover\:bg-danger:hover {
+        background-color: var(--color-danger);
+    }
+
+    .hover\:bg-danger-dark:hover {
+        background-color: var(--color-danger-dark);
+    }
+}
+
+/* Custom gradient for hero sections */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, var(--color-accent) 100%);
+}
+
+/* Football field pattern (optional decorative element) */
+.bg-field-pattern {
+    background-color: #16a34a;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+}

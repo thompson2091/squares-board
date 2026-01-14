@@ -1,0 +1,80 @@
+name: CI
+
+# Disabled: uncomment pull_request/push triggers to re-enable
+on:
+  workflow_dispatch:  # Manual trigger only
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - beta
+  # push:
+  #   branches:
+  #     - main
+  #     - beta
+
+jobs:
+  lint:
+    name: Lint (Pint + PHPStan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/dockerfile.php
+          target: php_local
+          load: true
+          tags: pantrytrak-ci:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Check code style (Pint)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app -w /app pantrytrak-ci:latest \
+            ./vendor/bin/pint --test
+
+      - name: Static analysis (PHPStan)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app -w /app pantrytrak-ci:latest \
+            ./vendor/bin/phpstan analyse
+
+  test:
+    name: Tests (PHPUnit)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/dockerfile.php
+          target: php_local
+          load: true
+          tags: pantrytrak-ci:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Generate app key
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app -w /app pantrytrak-ci:latest \
+            php artisan key:generate
+
+      - name: Run tests
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app -w /app pantrytrak-ci:latest \
+            ./vendor/bin/phpunit

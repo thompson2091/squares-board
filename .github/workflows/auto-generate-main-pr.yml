@@ -1,0 +1,32 @@
+name: PR into main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - beta
+
+jobs:
+  pull-request:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create pull request
+        id: pr
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: "beta"
+          destination_branch: "main"
+          pr_title: "PR 'beta' into main"
+          pr_body: "Auto-Generated from [PR #${{ github.event.number }}](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})"
+          pr_reviewer: "thompson2091"
+          pr_label: "main"
+          pr_draft: true
+          pr_allow_empty: false
+
+      - name: Output PR URL
+        run: echo ${{ steps.pr.outputs.pr_url }}
