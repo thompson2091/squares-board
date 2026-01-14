@@ -1,0 +1,52 @@
+networks:
+  pantrytrak:
+    driver: bridge
+
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfile.php
+      target: php_local
+    image: pantrytrak-php
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8888:8888"
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+      - PHP_OPCACHE_ENABLE_CLI=0
+      - PHP_OPCACHE_VALIDATE_TIMESTAMP=1
+      - PHP_OPCACHE_REVALIDATE_FREQ=0
+      - XDEBUG_MODE=off
+    networks:
+      - pantrytrak
+
+  composer:
+    image: pantrytrak-php
+    volumes:
+      - ./:/app
+    working_dir: /app
+    entrypoint: ["composer"]
+    depends_on:
+      - php
+
+  npm:
+    image: pantrytrak-php
+    volumes:
+      - ./:/app
+    working_dir: /app
+    entrypoint: ["npm"]
+    depends_on:
+      - php
+
+  artisan:
+    image: pantrytrak-php
+    volumes:
+      - ./:/app
+    working_dir: /app
+    entrypoint: ["php", "/app/artisan"]
+    depends_on:
+      - php
