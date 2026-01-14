@@ -29,18 +29,6 @@
                 </div>
             @endif
 
-            {{-- Welcome Card --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                        Welcome back, {{ $user->name }}!
-                    </h3>
-                    <p class="text-gray-600">
-                        Start a new Super Bowl Squares game, manage your existing boards, or join games you've been invited to.
-                    </p>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {{-- Main Content (2 columns on large screens) --}}
                 <div class="lg:col-span-2 space-y-6">
@@ -173,13 +161,17 @@
                     {{-- Winnings Summary --}}
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Winnings</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Your Winnings</h3>
+                            <div class="text-center mb-4">
+                                <span class="text-3xl font-bold text-success">${{ number_format($totalWinnings / 100, 2) }}</span>
+                            </div>
+                            <hr class="mb-4">
 
                             @if($recentWinnings->isNotEmpty())
                                 <div class="space-y-1">
                                     @foreach($recentWinnings as $winning)
                                         <div class="text-sm p-2 rounded {{ $loop->odd ? 'bg-gray-50' : 'bg-white' }}">
-                                            <div class="text-gray-900 font-medium">{{ $winning->board->name ?? 'Unknown Board' }}</div>
+                                            <a href="{{ route('boards.show', $winning->board) }}" class="text-gray-900 font-medium hover:text-primary">{{ $winning->board->name ?? 'Unknown Board' }}</a>
                                             <div class="flex justify-between items-center mt-0.5">
                                                 <div class="flex items-center gap-1">
                                                     <span class="text-xs text-gray-500">{{ $winning->quarter === 'final' ? 'Final' : $winning->quarter }}</span>
@@ -203,9 +195,8 @@
                                 <p class="text-sm text-gray-500">No winnings yet.</p>
                             @endif
 
-                            <div class="mt-4 pt-4 border-t flex justify-between items-center">
-                                <span class="text-sm font-medium text-gray-700">Total Winnings</span>
-                                <span class="text-xl font-bold text-success">${{ number_format($totalWinnings / 100, 2) }}</span>
+                            <div class="text-center mt-4">
+                                <a href="{{ route('winnings') }}" class="text-sm text-primary hover:text-primary-dark">View all winnings</a>
                             </div>
                         </div>
                     </div>

@@ -58,4 +58,29 @@ class DashboardController extends Controller
             'recentWinnings' => $recentWinnings,
         ]);
     }
+
+    /**
+     * Display the user's winnings history.
+     */
+    public function winnings(Request $request): View
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
+        }
+
+        $winnings = $user->winnings()
+            ->with('board:id,name,uuid')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        $totalWinnings = $user->winnings()->sum('payout_amount');
+
+        return view('winnings', [
+            'user' => $user,
+            'winnings' => $winnings,
+            'totalWinnings' => $totalWinnings,
+        ]);
+    }
 }
