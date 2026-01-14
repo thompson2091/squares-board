@@ -31,11 +31,15 @@ class DashboardController extends Controller
 
         $participatedBoards = $user->squares()
             ->with(['board' => function ($query): void {
-                $query->select('id', 'name', 'uuid', 'status', 'price_per_square');
+                $query->select('id', 'name', 'uuid', 'status', 'price_per_square', 'game_date', 'created_at')
+                    ->withCount(['squares as claimed_count' => function ($q): void {
+                        $q->whereNotNull('user_id');
+                    }]);
             }])
             ->get()
             ->pluck('board')
             ->unique('id')
+            ->sortByDesc('created_at')
             ->take(5);
 
         // Get winnings
