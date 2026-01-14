@@ -235,6 +235,9 @@
                     @endif
                 </div>
             </div>
+            @php
+                $canModifySquares = in_array($boardStatus, ['draft', 'open']);
+            @endphp
             @if(!$isPaid)
                 <button
                     @click="markPaid({{ $square?->id }}); $store.board.activeModal = null"
@@ -245,7 +248,7 @@
                     </svg>
                     <span>Mark as Paid</span>
                 </button>
-            @else
+            @elseif($canModifySquares)
                 <button
                     @click="markUnpaid({{ $square?->id }}); $store.board.activeModal = null"
                     class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-yellow-100 flex items-center gap-3 cursor-pointer"
@@ -256,15 +259,17 @@
                     <span>Unmark as Paid</span>
                 </button>
             @endif
-            <button
-                @click="$store.board.activeModal = null; if(confirm('Release this square? {{ $square?->user?->name ?? 'The user' }} will lose their claim.')) { releaseSquare({{ $square?->id }}); }"
-                class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-red-100 flex items-center gap-3 cursor-pointer"
-            >
-                <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Release Square</span>
-            </button>
+            @if($canModifySquares)
+                <button
+                    @click="$store.board.activeModal = null; if(confirm('Release this square? {{ $square?->user?->name ?? 'The user' }} will lose their claim.')) { releaseSquare({{ $square?->id }}); }"
+                    class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-red-100 flex items-center gap-3 cursor-pointer"
+                >
+                    <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Release Square</span>
+                </button>
+            @endif
         </div>
     @endif
 </div>

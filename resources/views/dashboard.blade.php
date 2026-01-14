@@ -73,11 +73,15 @@
                                     @foreach($participatedBoards as $board)
                                         <a href="{{ route('boards.show', $board) }}"
                                            class="block p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                                            <div class="flex justify-between items-start">
+                                            <div class="flex justify-between items-center">
                                                 <div>
                                                     <h4 class="font-medium text-gray-900">{{ $board->name }}</h4>
-                                                    <p class="text-sm text-gray-500">
-                                                        ${{ number_format($board->price_per_square / 100, 2) }} per square
+                                                    <p class="text-sm text-gray-500 mt-0.5">
+                                                        ${{ number_format($board->price_per_square / 100, 2) }}/sq
+                                                        @if($board->game_date)
+                                                            <span class="text-gray-300 mx-1">·</span>
+                                                            {{ $board->game_date->format('F jS, Y') }}
+                                                        @endif
                                                     </p>
                                                 </div>
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -170,39 +174,39 @@
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Winnings</h3>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold text-success">${{ number_format($totalWinnings / 100, 2) }}</p>
-                                <p class="text-sm text-gray-500 mt-1">Total winnings</p>
-                            </div>
 
                             @if($recentWinnings->isNotEmpty())
-                                <div class="mt-6 border-t pt-4">
-                                    <h4 class="text-sm font-medium text-gray-900 mb-3">Recent Wins</h4>
-                                    <div class="space-y-1">
-                                        @foreach($recentWinnings as $winning)
-                                            <div class="flex justify-between items-center text-sm p-2 rounded {{ $loop->odd ? 'bg-gray-50' : 'bg-white' }}">
-                                                <div>
-                                                    <span class="text-gray-900">{{ $winning->board->name ?? 'Unknown Board' }}</span>
-                                                    <div class="flex items-center gap-1 mt-0.5">
-                                                        <span class="text-xs text-gray-500">{{ $winning->quarter === 'final' ? 'Final' : $winning->quarter }}</span>
-                                                        <span class="text-gray-300">·</span>
-                                                        @if($winning->is_2mw)
-                                                            <span class="text-xs text-amber-600">2MW</span>
-                                                        @elseif($winning->is_touching)
-                                                            <span class="text-xs text-blue-600">Touching</span>
-                                                        @elseif($winning->is_reverse)
-                                                            <span class="text-xs text-purple-600">Reverse</span>
-                                                        @else
-                                                            <span class="text-xs text-green-600">Primary</span>
-                                                        @endif
-                                                    </div>
+                                <div class="space-y-1">
+                                    @foreach($recentWinnings as $winning)
+                                        <div class="text-sm p-2 rounded {{ $loop->odd ? 'bg-gray-50' : 'bg-white' }}">
+                                            <div class="text-gray-900 font-medium">{{ $winning->board->name ?? 'Unknown Board' }}</div>
+                                            <div class="flex justify-between items-center mt-0.5">
+                                                <div class="flex items-center gap-1">
+                                                    <span class="text-xs text-gray-500">{{ $winning->quarter === 'final' ? 'Final' : $winning->quarter }}</span>
+                                                    <span class="text-gray-300">·</span>
+                                                    @if($winning->is_2mw)
+                                                        <span class="text-xs text-amber-600">2MW</span>
+                                                    @elseif($winning->is_touching)
+                                                        <span class="text-xs text-blue-600">Touching</span>
+                                                    @elseif($winning->is_reverse)
+                                                        <span class="text-xs text-purple-600">Reverse</span>
+                                                    @else
+                                                        <span class="text-xs text-green-600">Primary</span>
+                                                    @endif
                                                 </div>
                                                 <span class="font-medium text-success">${{ number_format($winning->payout_amount / 100, 2) }}</span>
                                             </div>
-                                        @endforeach
-                                    </div>
+                                        </div>
+                                    @endforeach
                                 </div>
+                            @else
+                                <p class="text-sm text-gray-500">No winnings yet.</p>
                             @endif
+
+                            <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">Total Winnings</span>
+                                <span class="text-xl font-bold text-success">${{ number_format($totalWinnings / 100, 2) }}</span>
+                            </div>
                         </div>
                     </div>
 
