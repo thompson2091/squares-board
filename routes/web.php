@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // === AGENT 1: Dashboard & Profile ===
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/winnings', [DashboardController::class, 'winnings'])->name('winnings');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
