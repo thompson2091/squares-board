@@ -1,6 +1,19 @@
-# PantryTrak
+# Super Bowl Squares
 
-Laravel application with Docker support for local development and AWS ECS deployment.
+A web application for managing Super Bowl Squares games. Create boards, invite players, track payments, and automatically calculate winners based on game scores.
+
+## Features
+
+- **Board Management**: Create and manage multiple squares boards
+- **Square Claiming**: Players can claim squares with configurable limits per user
+- **Payment Tracking**: Track who has paid for their squares
+- **Flexible Payouts**: Configure payout rules by quarter with multiple winner types:
+  - Primary (exact score match)
+  - Reverse (swapped digits)
+  - Touching (adjacent squares)
+  - 2-Minute Warning (Q2/Final halftime scores)
+- **Auto-calculated Winners**: Winners automatically calculated when scores are entered
+- **Public/Private Boards**: Share boards publicly or keep them invite-only
 
 ## Requirements
 
@@ -14,7 +27,7 @@ Laravel application with Docker support for local development and AWS ECS deploy
 
 ```bash
 git clone <repository-url>
-cd pantrytrak-laravel
+cd squares-board
 ```
 
 ### 2. Configure environment
@@ -23,9 +36,7 @@ cd pantrytrak-laravel
 cp .env.example .env
 ```
 
-Edit `.env` and configure:
-- Database connection (external MySQL host)
-- Snowflake credentials (if using Snowflake integration)
+Edit `.env` and configure your database connection.
 
 ### 3. Build and start containers
 
@@ -52,7 +63,13 @@ docker compose run --rm artisan key:generate
 docker compose run --rm artisan migrate
 ```
 
-### 7. Access the application
+### 7. Build frontend assets
+
+```bash
+docker compose run --rm npm run build
+```
+
+### 8. Access the application
 
 Open [http://localhost:8001](http://localhost:8001) in your browser.
 
@@ -76,26 +93,12 @@ docker compose run --rm composer require package/name
 # Run migrations
 docker compose run --rm artisan migrate
 
-# Create a controller
-docker compose run --rm artisan make:controller MyController
-
-# Install npm dependencies
-docker compose run --rm npm install
-
 # Build frontend assets
 docker compose run --rm npm run build
-```
 
-## Git Workflow
-
+# Run dev server with hot reload
+docker compose run --rm npm run dev
 ```
-feature-branch → beta → main
-```
-
-1. Create feature branches from `beta`
-2. Open PRs into `beta` - CI runs Pint, PHPStan, PHPUnit
-3. When merged to `beta`, auto-PR is created to `main` (draft)
-4. Review and merge to `main` for production
 
 ## Pre-commit Hooks
 
@@ -115,9 +118,6 @@ Runs on PRs to `main` and `beta`:
 - **Lint job**: Pint (code style) + PHPStan (static analysis)
 - **Test job**: PHPUnit (requires lint to pass)
 
-### Auto-PR Workflow (`auto-generate-main-pr.yml`)
-When a PR is merged into `beta`, automatically creates a draft PR from `beta` → `main`.
-
 ### Manual commands
 
 ```bash
@@ -131,73 +131,9 @@ docker compose run --rm composer exec phpstan analyse
 docker compose run --rm artisan test
 ```
 
-## Project Structure
+## Tech Stack
 
-```
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                 # CI: Pint, PHPStan, PHPUnit
-│       └── auto-generate-main-pr.yml  # Auto-PR beta → main
-├── .husky/
-│   └── pre-commit                 # Pre-commit hook (Pint + PHPStan)
-├── app/
-│   └── Services/
-│       └── Snowflake.php      # Snowflake SQL API client
-├── config/
-│   └── snowflake.php          # Snowflake configuration
-├── docker/
-│   ├── dockerfile.php         # Multi-stage Dockerfile
-│   ├── entrypoint.sh          # Local entrypoint
-│   ├── entrypoint.prod.sh     # Production entrypoint
-│   ├── nginx/
-│   │   └── nginx.conf
-│   └── php/
-│       ├── php.ini
-│       └── php-fpm.conf
-├── docker-compose.yml
-├── phpstan.neon               # PHPStan config (level 8)
-└── .env.example
-```
-
-## Dockerfile Targets
-
-| Target | Use Case |
-|--------|----------|
-| `php_local` | Local development with Xdebug |
-| `php_beta` | Staging/beta deployments |
-| `php_prod` | Production deployments (AWS ECS) |
-
-## Production Build (AWS ECS)
-
-```bash
-docker build -f docker/dockerfile.php --target php_prod -t pantrytrak:latest .
-```
-
-## Snowflake Integration
-
-The `App\Services\Snowflake` class provides JWT-authenticated access to Snowflake's SQL API.
-
-Required `.env` variables:
-```
-SNOWFLAKE_ACCOUNT=
-SNOWFLAKE_REGION=
-SNOWFLAKE_DOMAIN=snowflakecomputing.com
-SNOWFLAKE_USER=
-SNOWFLAKE_DATABASE=
-SNOWFLAKE_SCHEMA=
-SNOWFLAKE_WAREHOUSE=
-SNOWFLAKE_ROLE=
-SNOWFLAKE_API_PATH=/api/v2/statements
-SNOWFLAKE_PRIVATE_KEY=      # base64 encoded
-SNOWFLAKE_PUBLIC_KEY=       # base64 encoded
-SNOWFLAKE_PUBLIC_FINGERPRINT=
-```
-
-Usage:
-```php
-use App\Services\Snowflake;
-
-$results = Snowflake::execute('SELECT * FROM my_table WHERE id = ?', [
-    '1' => ['type' => 'TEXT', 'value' => '123']
-]);
-```
+- **Backend**: Laravel 12, PHP 8.5
+- **Frontend**: Blade, Tailwind CSS, Alpine.js
+- **Database**: MySQL
+- **Containerization**: Docker
