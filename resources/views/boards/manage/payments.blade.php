@@ -250,19 +250,35 @@
                 }
             }
 
+            // Helper to get only visible checkboxes
+            function getVisibleCheckboxes() {
+                return Array.from(checkboxes).filter(cb => {
+                    const row = cb.closest('.square-row');
+                    return row && row.style.display !== 'none';
+                });
+            }
+
             selectAll.addEventListener('change', function() {
-                checkboxes.forEach(cb => cb.checked = this.checked);
+                const visibleCheckboxes = getVisibleCheckboxes();
+                visibleCheckboxes.forEach(cb => cb.checked = this.checked);
                 updateBulkActions();
             });
 
             checkboxes.forEach(cb => {
                 cb.addEventListener('change', function() {
-                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                    const visibleCheckboxes = getVisibleCheckboxes();
+                    const allChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(cb => cb.checked);
+                    const someChecked = visibleCheckboxes.some(cb => cb.checked);
                     selectAll.checked = allChecked;
                     selectAll.indeterminate = someChecked && !allChecked;
                     updateBulkActions();
                 });
+            });
+
+            // Reset select all state when search changes
+            searchInput.addEventListener('input', function() {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
             });
         });
     </script>
