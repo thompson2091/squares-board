@@ -181,4 +181,71 @@ class SquareController extends Controller
 
         return back()->with('success', 'Square released successfully!');
     }
+
+    /**
+     * Update the display name for a square.
+     */
+    public function updateName(Request $request, Board $board, Square $square): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be logged in to update a square.',
+            ], 401);
+        }
+
+        // Verify square belongs to this board
+        if ($square->board_id !== $board->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Square does not belong to this board.',
+            ], 400);
+        }
+
+        // Check authorization: owner or board/platform admin
+        $canUpdate = $square->isClaimedBy($user) || $board->isAdminUser($user);
+
+        if (! $canUpdate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to update this square.',
+            ], 403);
+        }
+
+        // Check if board allows updates (only when open or draft)
+        if (! $board->isOpen() && ! $board->isDraft()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Square names cannot be updated after the board is locked.',
+            ], 403);
+        }
+
+        // Check if square is claimed
+        if (! $square->isClaimed()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This square is not claimed.',
+            ], 400);
+        }
+
+        // Validate and update
+        $validated = $request->validate([
+            'display_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $square->display_name = $validated['display_name'] ?? null;
+        $square->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Display name updated successfully!',
+            'square' => [
+                'id' => $square->id,
+                'display_name' => $square->display_name,
+                'display_name_for_square' => $square->displayNameForSquare,
+            ],
+        ]);
+    }
 }

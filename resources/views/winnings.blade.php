@@ -31,31 +31,35 @@
                     @else
                         <div class="space-y-2">
                             @foreach($winnings as $winning)
-                                <div class="p-3 rounded border {{ $loop->odd ? 'bg-gray-50' : 'bg-white' }}">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <a href="{{ route('boards.show', $winning->board) }}" class="text-gray-900 font-medium hover:text-primary">
-                                                {{ $winning->board->name ?? 'Unknown Board' }}
-                                            </a>
-                                            <div class="flex items-center gap-2 mt-1">
-                                                <span class="text-xs text-gray-500">{{ $winning->quarter === 'final' ? 'Final' : $winning->quarter }}</span>
-                                                <span class="text-gray-300">·</span>
-                                                @if($winning->is_2mw)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">2MW</span>
-                                                @elseif($winning->is_touching)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Touching</span>
-                                                @elseif($winning->is_reverse)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Reverse</span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Primary</span>
-                                                @endif
-                                            </div>
-                                            <div class="text-xs text-gray-400 mt-1">
-                                                {{ $winning->created_at->format('F jS, Y') }}
-                                            </div>
-                                        </div>
-                                        <span class="text-lg font-semibold text-success">${{ number_format($winning->payout_amount / 100, 2) }}</span>
+                                @php
+                                    $quarterLabel = $winning->quarter === 'final' ? 'Q4' : $winning->quarter;
+                                    if ($winning->is_2mw) {
+                                        $badgeColor = 'bg-amber-100 text-amber-800';
+                                        $hoverText = $quarterLabel . ' 2-Minute Warning';
+                                    } elseif ($winning->is_touching) {
+                                        $badgeColor = 'bg-blue-100 text-blue-800';
+                                        $hoverText = $quarterLabel . ' Touching';
+                                    } elseif ($winning->is_reverse) {
+                                        $badgeColor = 'bg-purple-100 text-purple-800';
+                                        $hoverText = $quarterLabel . ' Reverse';
+                                    } else {
+                                        $badgeColor = 'bg-green-100 text-green-800';
+                                        $hoverText = $quarterLabel . ' Primary';
+                                    }
+                                @endphp
+                                <div class="flex items-center gap-3 p-3 rounded border {{ $loop->odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    {{-- Badge --}}
+                                    <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-semibold {{ $badgeColor }} min-w-[40px] cursor-default" title="{{ $hoverText }}">{{ $quarterLabel }}</span>
+
+                                    {{-- Name & Board --}}
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-gray-900 truncate">{{ $winning->square?->displayNameForSquare ?? $winning->user->name }}</div>
+                                        <a href="{{ route('boards.show', $winning->board) }}" class="text-xs text-gray-500 hover:text-primary truncate block">{{ $winning->board->name ?? 'Unknown Board' }}</a>
+                                        <div class="text-xs text-gray-400">{{ $winning->created_at->format('F jS, Y') }}</div>
                                     </div>
+
+                                    {{-- Amount --}}
+                                    <span class="text-lg font-semibold text-success whitespace-nowrap">${{ number_format($winning->payout_amount / 100, 2) }}</span>
                                 </div>
                             @endforeach
                         </div>

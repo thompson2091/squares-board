@@ -33,23 +33,26 @@
                         </div>
                         <div class="bg-purple-50 rounded-lg p-4">
                             <div class="text-sm text-purple-600">Unique Winners</div>
-                            <div class="text-3xl font-bold text-purple-600">{{ $payoutsByUser->count() }}</div>
+                            <div class="text-3xl font-bold text-purple-600">{{ $payoutsByDisplayName->count() }}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Payouts by User -->
-            @if($payoutsByUser->isNotEmpty())
+            <!-- Payouts by Display Name -->
+            @if($payoutsByDisplayName->isNotEmpty())
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Payouts by User</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Payouts by Winner</h3>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            User
+                                            Display Name
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Account
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Wins
@@ -60,21 +63,23 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($payoutsByUser as $userData)
+                                    @foreach($payoutsByDisplayName as $winnerData)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm font-medium text-gray-900">
-                                                    {{ $userData['user']?->name ?? 'Unknown' }}
+                                                    {{ $winnerData['display_name'] }}
                                                 </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-500">
-                                                    {{ $userData['user']?->email ?? '' }}
+                                                    {{ $winnerData['user']?->email ?? '' }}
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ $userData['wins'] }}
+                                                {{ $winnerData['wins'] }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                                                ${{ number_format($userData['total'] / 100, 2) }}
+                                                ${{ number_format($winnerData['total'] / 100, 2) }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -142,7 +147,7 @@
                                                 @foreach($quarterWinners as $winner)
                                                     <tr>
                                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                            {{ $winner->user?->name ?? 'Unknown' }}
+                                                            {{ $winner->square?->displayNameForSquare ?? $winner->user?->name ?? 'Unknown' }}
                                                         </td>
                                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                                             Row {{ ($winner->square?->row ?? 0) + 1 }}, Col {{ ($winner->square?->col ?? 0) + 1 }}
