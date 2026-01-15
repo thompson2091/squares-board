@@ -153,6 +153,9 @@
             openEditNameModal(squareId, currentName) {
                 this.editingSquare = { id: squareId, displayName: currentName || '' };
                 this.activeModal = 'edit-name-modal';
+                setTimeout(() => {
+                    document.getElementById('edit-display-name')?.focus();
+                }, 50);
             },
             closeEditNameModal() {
                 this.editingSquare = null;
