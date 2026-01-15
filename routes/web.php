@@ -22,6 +22,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/privacy', fn () => view('privacy'))->name('privacy');
+Route::get('/terms', fn () => view('terms'))->name('terms');
+
 Route::get('/health', fn () => response('healthy', 200))->name('health');
 
 /*
