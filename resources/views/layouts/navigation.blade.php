@@ -16,10 +16,6 @@
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
-                    @else
-                        <x-nav-link :href="route('boards.browse')" :active="request()->routeIs('boards.browse')">
-                            {{ __('Browse Boards') }}
-                        </x-nav-link>
                     @endauth
                 </div>
             </div>
@@ -88,10 +84,6 @@
             @auth
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-            @else
-                <x-responsive-nav-link :href="route('boards.browse')" :active="request()->routeIs('boards.browse')">
-                    {{ __('Browse Boards') }}
                 </x-responsive-nav-link>
             @endauth
         </div>
