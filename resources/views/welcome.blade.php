@@ -206,9 +206,9 @@
                     &copy; {{ date('Y') }} SquaresBoard. All rights reserved.
                 </div>
                 <div class="flex items-center gap-6 text-sm text-gray-400">
-                    <a href="#" class="hover:text-white transition-colors">Privacy</a>
-                    <a href="#" class="hover:text-white transition-colors">Terms</a>
-                    <a href="#" class="hover:text-white transition-colors">Contact</a>
+                    <a href="{{ route('privacy') }}" class="hover:text-white transition-colors">Privacy</a>
+                    <a href="{{ route('terms') }}" class="hover:text-white transition-colors">Terms</a>
+                    <a href="mailto:thompson2091@gmail.com" class="hover:text-white transition-colors">Contact</a>
                 </div>
             </div>
         </div>
