@@ -105,19 +105,19 @@
                         </div>
                     @endif
 
-                    {{-- Payouts by User - Show when there are winners --}}
-                    @if($payoutsByUser->isNotEmpty())
+                    {{-- Payouts by Display Name - Show when there are winners --}}
+                    @if($payoutsByDisplayName->isNotEmpty())
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div class="p-4">
                                 <h3 class="text-sm font-semibold text-gray-900 mb-3">{{ __('Winners') }}</h3>
                                 <div class="space-y-2">
-                                    @foreach($payoutsByUser as $userData)
+                                    @foreach($payoutsByDisplayName as $winnerData)
                                         <div class="flex justify-between items-center text-sm {{ $loop->odd ? 'bg-gray-50' : '' }} rounded px-2 py-1.5">
                                             <div class="flex items-center gap-2 min-w-0">
                                                 <span class="text-gray-500 text-xs w-4">{{ $loop->iteration }}.</span>
-                                                <span class="text-gray-900 truncate">{{ $userData['user']?->name ?? 'Unknown' }}</span>
+                                                <span class="text-gray-900 truncate">{{ $winnerData['display_name'] }}</span>
                                             </div>
-                                            <span class="font-medium text-green-600 whitespace-nowrap ml-2">${{ number_format($userData['total'] / 100, 2) }}</span>
+                                            <span class="font-medium text-green-600 whitespace-nowrap ml-2">${{ number_format($winnerData['total'] / 100, 2) }}</span>
                                         </div>
                                     @endforeach
                                 </div>

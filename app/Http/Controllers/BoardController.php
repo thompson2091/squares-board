@@ -209,17 +209,21 @@ class BoardController extends Controller
             ];
         }
 
-        // Calculate payouts by user for the sidebar leaderboard
-        $payoutsByUser = $board->winners
-            ->load('user')
-            ->groupBy('user_id')
-            ->map(function ($userWinners) {
-                $firstWinner = $userWinners->first();
+        // Calculate payouts by display name for the sidebar leaderboard
+        // Group by display name so same user with different square names shows separately
+        $payoutsByDisplayName = $board->winners
+            ->load(['user', 'square'])
+            ->groupBy(function (\App\Models\Winner $winner): string {
+                return $winner->square->displayNameForSquare ?? $winner->user->name;
+            })
+            ->map(function ($winners, $displayName) {
+                $firstWinner = $winners->first();
 
                 return [
+                    'display_name' => $displayName,
                     'user' => $firstWinner?->user,
-                    'total' => $userWinners->sum('payout_amount'),
-                    'wins' => $userWinners->count(),
+                    'total' => $winners->sum('payout_amount'),
+                    'wins' => $winners->count(),
                 ];
             })
             ->sortByDesc('total');
@@ -235,7 +239,7 @@ class BoardController extends Controller
             'autoClaimMessage' => $autoClaimMessage,
             'autoClaimError' => $autoClaimError,
             'winningSquares' => $winningSquares,
-            'payoutsByUser' => $payoutsByUser,
+            'payoutsByDisplayName' => $payoutsByDisplayName,
         ]);
     }
 

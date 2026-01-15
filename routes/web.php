@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Square claiming (AJAX)
     Route::post('/boards/{board:uuid}/squares/{row}/{col}/claim', [SquareController::class, 'claim'])->name('squares.claim');
     Route::delete('/boards/{board:uuid}/squares/{square}/release', [SquareController::class, 'release'])->name('squares.release');
+    Route::patch('/boards/{board:uuid}/squares/{square}/name', [SquareController::class, 'updateName'])->name('squares.update-name');
 
     // === AGENT 3: Board Management Routes ===
     Route::prefix('manage/boards/{board:uuid}')->name('manage.boards.')->group(function () {
