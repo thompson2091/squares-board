@@ -32,11 +32,14 @@
     // Admin can interact with claimed squares
     $adminCanManage = $isAdmin && $isClaimed;
 
-    // Can user release this square?
+    // Owner can manage their own square (when board is draft/open)
+    $ownerCanManage = $isOwn && in_array($boardStatus, ['draft', 'open']) && !$isAdmin;
+
+    // Can user release this square? (used for logic, not direct click anymore)
     $canRelease = $isOwn && !$isPaid && in_array($boardStatus, ['draft', 'open']);
 
     // Show details popup for claimed squares the user can't release/manage
-    $showDetailsOnClick = $isClaimed && !$adminCanManage && !$canRelease;
+    $showDetailsOnClick = $isClaimed && !$adminCanManage && !$ownerCanManage;
 
     // Position dropdown to prevent overflow scroll
     // Vertical: last 3 rows show above, others below
@@ -84,12 +87,11 @@
         tabindex="0"
         @keydown.enter="claimSquare({{ $row }}, {{ $col }})"
         aria-label="Claim square at row {{ $row }}, column {{ $col }}"
-    @elseif($canRelease)
-        @click="releaseSquare({{ $square?->id }})"
+    @elseif($ownerCanManage)
+        @click.stop="$store.board.activeModal = $store.board.activeModal === 'owner-{{ $row }}-{{ $col }}' ? null : 'owner-{{ $row }}-{{ $col }}'"
         role="button"
         tabindex="0"
-        @keydown.enter="releaseSquare({{ $square?->id }})"
-        aria-label="Release your square at row {{ $row }}, column {{ $col }}"
+        aria-label="Manage your square at row {{ $row }}, column {{ $col }}"
     @elseif($adminCanManage)
         @click.stop="$store.board.activeModal = $store.board.activeModal === 'menu-{{ $row }}-{{ $col }}' ? null : 'menu-{{ $row }}-{{ $col }}'"
         role="button"
@@ -101,7 +103,7 @@
         tabindex="0"
         aria-label="View square details"
     @endif
-    class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center text-xs sm:text-sm {{ $bgColor }} border border-gray-200 relative transition-colors duration-150 select-none {{ $adminCanManage || $showDetailsOnClick ? 'cursor-pointer' : '' }} {{ $adminCanManage && !$isWinner ? 'ring-inset hover:ring-2 hover:ring-indigo-300' : '' }} {{ $showDetailsOnClick && !$isWinner ? 'hover:ring-1 hover:ring-gray-300' : '' }} {{ $winnerRingClass }}"
+    class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center text-xs sm:text-sm {{ $bgColor }} border border-gray-200 relative transition-colors duration-150 select-none {{ $adminCanManage || $ownerCanManage || $showDetailsOnClick ? 'cursor-pointer' : '' }} {{ ($adminCanManage || $ownerCanManage) && !$isWinner ? 'ring-inset hover:ring-2 hover:ring-indigo-300' : '' }} {{ $showDetailsOnClick && !$isWinner ? 'hover:ring-1 hover:ring-gray-300' : '' }} {{ $winnerRingClass }}"
     @php
         if ($numbersRevealed && $rowNumber !== null && $colNumber !== null) {
             $positionInfo = $rowNumber . '-' . $colNumber;
@@ -109,7 +111,7 @@
             $positionInfo = 'Row ' . ($row + 1) . ', Col ' . ($col + 1) . ($isClaimed ? ($isPaid ? ' (Paid)' : ' (Unpaid)') : '');
         }
         $titleText = $isClaimed
-            ? ($square?->user?->name ?? 'Claimed') . ' - ' . $positionInfo
+            ? ($square?->displayNameForSquare ?? 'Claimed') . ' - ' . $positionInfo
             : 'Available - ' . $positionInfo;
     @endphp
     title="{{ $titleText }}"
@@ -127,8 +129,8 @@
             }
         @endphp
         <span class="font-medium {{ $textColor }} truncate px-0.5 leading-tight text-center">
-            @if($square?->user)
-                {{ \Illuminate\Support\Str::limit($square->user->name, 8, '') }}
+            @if($square?->displayNameForSquare)
+                {{ \Illuminate\Support\Str::limit($square->displayNameForSquare, 8, '') }}
             @else
                 {{ __('--') }}
             @endif
@@ -154,7 +156,7 @@
             @click.stop
         >
             <div class="flex items-center justify-between gap-2">
-                <span class="text-sm font-medium text-gray-900">{{ $square?->user?->name ?? 'Unknown' }}</span>
+                <span class="text-sm font-medium text-gray-900">{{ $square?->displayNameForSquare ?? 'Unknown' }}</span>
             </div>
             @if($isWinner)
                 <div class="flex flex-wrap gap-1 mt-1.5">
@@ -188,6 +190,52 @@
         </div>
     @endif
 
+    {{-- Owner dropdown menu --}}
+    @if($ownerCanManage)
+        <div
+            x-show="$store.board.activeModal === 'owner-{{ $row }}-{{ $col }}'"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="absolute z-50 {{ $dropdownPosition }} min-w-[220px] bg-white rounded-lg shadow-xl border border-gray-200 py-1 text-left"
+            @click.stop
+        >
+            <div class="px-4 py-2 border-b border-gray-100">
+                <span class="text-xs font-medium text-gray-700">{{ $square?->displayNameForSquare ?? 'Your Square' }}</span>
+                <div class="text-xs text-gray-400 mt-0.5">
+                    @if($numbersRevealed && $rowNumber !== null && $colNumber !== null)
+                        {{ $teamRow }} {{ $rowNumber }} - {{ $teamCol }} {{ $colNumber }}
+                    @else
+                        Row {{ $row + 1 }}, Col {{ $col + 1 }}
+                    @endif
+                </div>
+            </div>
+            <button
+                @click="$store.board.activeModal = null; $store.board.openEditNameModal({{ $square?->id }}, '{{ $square?->display_name ?? '' }}')"
+                class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-indigo-50 flex items-center gap-3 cursor-pointer"
+            >
+                <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Edit Display Name</span>
+            </button>
+            @if(!$isPaid)
+                <button
+                    @click="$store.board.activeModal = null; if(confirm('Are you sure you want to release this square?')) { releaseSquare({{ $square?->id }}); }"
+                    class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-red-100 flex items-center gap-3 cursor-pointer"
+                >
+                    <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Release Square</span>
+                </button>
+            @endif
+        </div>
+    @endif
+
     {{-- Admin dropdown menu --}}
     @if($adminCanManage)
         <div
@@ -203,7 +251,7 @@
         >
             <div class="px-4 py-2 border-b border-gray-100">
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-medium text-gray-700">{{ $square?->user?->name ?? 'Unknown' }}</span>
+                    <span class="text-xs font-medium text-gray-700">{{ $square?->displayNameForSquare ?? 'Unknown' }}</span>
                 </div>
                 @if($isWinner)
                     <div class="flex flex-wrap gap-1 mt-1">
@@ -238,6 +286,17 @@
             @php
                 $canModifySquares = in_array($boardStatus, ['draft', 'open']);
             @endphp
+            @if($canModifySquares)
+                <button
+                    @click="$store.board.activeModal = null; $store.board.openEditNameModal({{ $square?->id }}, '{{ $square?->display_name ?? '' }}')"
+                    class="w-full px-4 py-3 text-sm text-left text-gray-700 bg-white hover:bg-indigo-50 flex items-center gap-3 cursor-pointer"
+                >
+                    <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit Display Name</span>
+                </button>
+            @endif
             @if(!$isPaid)
                 <button
                     @click="markPaid({{ $square?->id }}); $store.board.activeModal = null"

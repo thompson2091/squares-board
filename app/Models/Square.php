@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $user_id
  * @property int $row
  * @property int $col
+ * @property string|null $display_name
  * @property bool $is_paid
  * @property \Illuminate\Support\Carbon|null $claimed_at
  * @property \Illuminate\Support\Carbon|null $paid_at
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Board $board
  * @property-read User|null $user
+ * @property-read string|null $displayNameForSquare
  */
 class Square extends Model
 {
@@ -45,6 +47,7 @@ class Square extends Model
         'user_id',
         'row',
         'col',
+        'display_name',
         'is_paid',
         'claimed_at',
         'paid_at',
@@ -118,6 +121,7 @@ class Square extends Model
     public function release(): void
     {
         $this->user_id = null;
+        $this->display_name = null;
         $this->claimed_at = null;
         $this->is_paid = false;
         $this->paid_at = null;
@@ -178,5 +182,14 @@ class Square extends Model
         }
 
         return $board->col_numbers[$this->col] ?? null;
+    }
+
+    /**
+     * Get the display name for this square.
+     * Returns custom display_name if set, otherwise falls back to user's name.
+     */
+    public function getDisplayNameForSquareAttribute(): ?string
+    {
+        return $this->display_name ?? $this->user?->name;
     }
 }

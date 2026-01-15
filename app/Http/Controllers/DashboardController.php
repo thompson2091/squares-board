@@ -45,7 +45,7 @@ class DashboardController extends Controller
         // Get winnings
         $totalWinnings = $user->winnings()->sum('payout_amount');
         $recentWinnings = $user->winnings()
-            ->with('board:id,name,uuid')
+            ->with(['board:id,name,uuid', 'square.user:id,name'])
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
@@ -71,7 +71,7 @@ class DashboardController extends Controller
         }
 
         $winnings = $user->winnings()
-            ->with('board:id,name,uuid')
+            ->with(['board:id,name,uuid', 'square.user:id,name'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
