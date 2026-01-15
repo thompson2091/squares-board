@@ -22,7 +22,7 @@
             <div class="grid grid-cols-11 gap-px mb-px">
                 <div class="aspect-square min-w-8 max-h-[4.75rem]"></div> {{-- Empty corner --}}
                 @for($col = 0; $col < 10; $col++)
-                    <div class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center bg-gray-700 text-white text-xs sm:text-sm font-semibold rounded-t">
+                    <div class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center bg-gray-700 text-white rounded-t {{ $board->numbers_revealed && $board->col_numbers ? 'text-xl sm:text-2xl font-bold' : 'text-xs sm:text-sm font-semibold' }}">
                         @if($board->numbers_revealed && $board->col_numbers)
                             {{ $board->col_numbers[$col] }}
                         @else
@@ -36,7 +36,7 @@
             @for($row = 0; $row < 10; $row++)
                 <div class="grid grid-cols-11 gap-px mb-px">
                     {{-- Row Number --}}
-                    <div class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center bg-gray-700 text-white text-xs sm:text-sm font-semibold {{ $row === 0 ? 'rounded-tl' : '' }} {{ $row === 9 ? 'rounded-bl' : '' }}">
+                    <div class="aspect-square min-w-8 max-h-[4.75rem] flex items-center justify-center bg-gray-700 text-white {{ $row === 0 ? 'rounded-tl' : '' }} {{ $row === 9 ? 'rounded-bl' : '' }} {{ $board->numbers_revealed && $board->row_numbers ? 'text-xl sm:text-2xl font-bold' : 'text-xs sm:text-sm font-semibold' }}">
                         @if($board->numbers_revealed && $board->row_numbers)
                             {{ $board->row_numbers[$row] }}
                         @else
