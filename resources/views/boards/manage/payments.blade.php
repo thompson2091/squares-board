@@ -85,8 +85,14 @@
                     @if($squares->isEmpty())
                         <p class="text-gray-500 text-center py-8">No squares have been claimed yet.</p>
                     @else
+                        <div class="mb-4">
+                            <input type="text"
+                                   id="search-input"
+                                   placeholder="Search by name..."
+                                   class="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        </div>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
+                            <table id="squares-table" class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-4 py-3 text-left">
@@ -111,7 +117,10 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($squares as $square)
-                                        <tr class="{{ $square->is_paid ? 'bg-green-50' : '' }}">
+                                        <tr class="square-row {{ $square->is_paid ? 'bg-green-50' : '' }}"
+                                            data-display-name="{{ strtolower($square->displayNameForSquare ?? '') }}"
+                                            data-user-name="{{ strtolower($square->user?->name ?? '') }}"
+                                            data-email="{{ strtolower($square->user?->email ?? '') }}">
                                             <td class="px-4 py-4 whitespace-nowrap">
                                                 <input type="checkbox"
                                                        class="square-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
@@ -124,7 +133,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900">{{ $square->user?->name ?? 'Unknown' }}</div>
+                                                <div class="text-sm text-gray-900">{{ $square->displayNameForSquare ?? 'Unknown' }}</div>
                                                 <div class="text-sm text-gray-500">{{ $square->user?->email ?? '' }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -188,6 +197,20 @@
             const bulkPaidSquareIds = document.getElementById('bulk-paid-square-ids');
             const bulkReleaseSquareIds = document.getElementById('bulk-release-square-ids');
             const bulkMarkPaidForm = document.getElementById('bulk-mark-paid-form');
+            const searchInput = document.getElementById('search-input');
+            const rows = document.querySelectorAll('.square-row');
+
+            // Search/filter functionality
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                rows.forEach(row => {
+                    const displayName = row.dataset.displayName || '';
+                    const userName = row.dataset.userName || '';
+                    const email = row.dataset.email || '';
+                    const matches = displayName.includes(query) || userName.includes(query) || email.includes(query);
+                    row.style.display = matches ? '' : 'none';
+                });
+            });
 
             function updateBulkActions() {
                 const checked = document.querySelectorAll('.square-checkbox:checked');
