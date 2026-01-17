@@ -24,6 +24,30 @@
                 </div>
             @endif
 
+            {{-- Draft Status Notice --}}
+            @if($board->status === 'draft')
+                <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-amber-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div>
+                                <p class="font-medium text-amber-900">This board is in draft mode</p>
+                                <p class="text-sm text-amber-700">Players cannot see or claim squares until you activate it.</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('boards.edit', $board) }}#status" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Activate Board
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             {{-- Board Full Notice --}}
             @if(($claimedCount ?? 0) >= 100 && $board->isOpen())
                 <div class="mb-6 bg-violet-50 border border-violet-200 rounded-lg p-4">
