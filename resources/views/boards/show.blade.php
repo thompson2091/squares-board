@@ -336,6 +336,27 @@
                         </div>
                     @endif
 
+                    {{-- Numbers Not Drawn Notice --}}
+                    @if($isAdmin && $board->isLocked() && (empty($board->row_numbers) || empty($board->col_numbers)))
+                        <div class="bg-blue-50 border border-blue-200 overflow-hidden sm:rounded-lg">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <h3 class="text-sm font-semibold text-blue-900">{{ __('Numbers Not Drawn') }}</h3>
+                                </div>
+                                <p class="text-sm text-blue-700 mb-3">The board is locked but numbers still need to be assigned to rows and columns.</p>
+                                <form method="POST" action="{{ route('manage.boards.generate-numbers', $board) }}" onsubmit="return confirm('Are you sure you want to draw numbers? This will randomly assign numbers 0-9 to rows and columns.');">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+                                        {{ __('Draw Numbers') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Board Stats --}}
                     <x-board.stats :board="$board" />
 
