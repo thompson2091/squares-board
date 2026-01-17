@@ -1,5 +1,5 @@
 networks:
-  pantrytrak:
+  squaresboard:
     driver: bridge
 
 services:
@@ -8,7 +8,7 @@ services:
       context: ./
       dockerfile: ./docker/dockerfile.php
       target: php_local
-    image: pantrytrak-php
+    image: squaresboard-php
     restart: unless-stopped
     working_dir: /app
     volumes:
@@ -22,10 +22,10 @@ services:
       - PHP_OPCACHE_REVALIDATE_FREQ=0
       - XDEBUG_MODE=off
     networks:
-      - pantrytrak
+      - squaresboard
 
   composer:
-    image: pantrytrak-php
+    image: squaresboard-php
     volumes:
       - ./:/app
     working_dir: /app
@@ -34,7 +34,7 @@ services:
       - php
 
   npm:
-    image: pantrytrak-php
+    image: squaresboard-php
     volumes:
       - ./:/app
     working_dir: /app
@@ -43,7 +43,7 @@ services:
       - php
 
   artisan:
-    image: pantrytrak-php
+    image: squaresboard-php
     volumes:
       - ./:/app
     working_dir: /app
