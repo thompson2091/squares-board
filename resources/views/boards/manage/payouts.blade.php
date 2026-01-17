@@ -63,6 +63,31 @@
                 </div>
             </div>
 
+            <!-- Payout Rule Types -->
+            <div class="bg-blue-50 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-blue-900 mb-2">Payout Rule Types</h3>
+                    <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <dt class="font-medium text-blue-800">Primary Winner</dt>
+                            <dd class="text-blue-700">The square matching both team score digits (last digit of each score).</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-blue-800">Reverse Winner</dt>
+                            <dd class="text-blue-700">The square matching the swapped digits. If score is 7-3, reverse is 3-7.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-blue-800">Touching Squares</dt>
+                            <dd class="text-blue-700">The 4 squares adjacent to the winning square (up, down, left, right with wrap-around). <strong>Each square gets the entered amount</strong>, so total payout is 4× the amount.</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-blue-800">2-Min Warning</dt>
+                            <dd class="text-blue-700">Winner based on the score at the 2-minute warning. Only available for Halftime and Final.</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
             <!-- Add New Payout Rule -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
@@ -208,30 +233,6 @@
                 </div>
             </div>
 
-            <!-- Help Section -->
-            <div class="mt-6 bg-blue-50 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-medium text-blue-900 mb-2">Payout Rule Types</h3>
-                    <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <dt class="font-medium text-blue-800">Primary Winner</dt>
-                            <dd class="text-blue-700">The square matching both team score digits (last digit of each score).</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-blue-800">Reverse Winner</dt>
-                            <dd class="text-blue-700">The square matching the swapped digits. If score is 7-3, reverse is 3-7.</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-blue-800">Touching Squares</dt>
-                            <dd class="text-blue-700">The 4 squares adjacent to the winning square (up, down, left, right with wrap-around). <strong>Each square gets the entered amount</strong>, so total payout is 4× the amount.</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-blue-800">2-Min Warning</dt>
-                            <dd class="text-blue-700">Winner based on the score at the 2-minute warning. Only available for Halftime and Final.</dd>
-                        </div>
-                    </dl>
-                </div>
-            </div>
         </div>
     </div>
 
