@@ -4,6 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Squares Board - The Modern Way to Play Football Squares</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:title" content="SquaresBoard - Football Squares, Simplified">
+    <meta property="og:description" content="Create and manage your game day squares pool in minutes. No spreadsheets, no hassle.">
+    <meta property="og:image" content="{{ url('/og-image.svg') }}">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SquaresBoard - Football Squares, Simplified">
+    <meta name="twitter:description" content="Create and manage your game day squares pool in minutes. No spreadsheets, no hassle.">
+    <meta name="twitter:image" content="{{ url('/og-image.svg') }}">
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
