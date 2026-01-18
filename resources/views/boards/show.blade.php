@@ -257,6 +257,9 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {{-- Main Grid Area --}}
                 <div class="lg:col-span-3 space-y-6">
+                    {{-- Scoreboard - Only shows when scores are available --}}
+                    <x-board.scoreboard :board="$board" />
+
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <x-board.grid

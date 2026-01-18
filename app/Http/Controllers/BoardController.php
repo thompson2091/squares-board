@@ -145,7 +145,7 @@ class BoardController extends Controller
      */
     public function show(Request $request, Board $board): View
     {
-        $board->load(['squares.user', 'owner', 'payoutRules', 'winners']);
+        $board->load(['squares.user', 'owner', 'payoutRules', 'winners', 'gameScores']);
 
         $user = Auth::user();
         $userSquares = [];
