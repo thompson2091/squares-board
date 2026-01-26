@@ -96,6 +96,7 @@ class BoardController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', 'unique:boards,slug'],
             'description' => ['nullable', 'string', 'max:1000'],
             'team_row' => ['required', 'string', 'max:100'],
             'team_col' => ['required', 'string', 'max:100'],
@@ -111,6 +112,8 @@ class BoardController extends Controller
         $validated['owner_id'] = $user->id;
         $validated['status'] = Board::STATUS_DRAFT;
         $validated['is_public'] = $validated['is_public'] ?? false;
+        // Convert empty slug to null
+        $validated['slug'] = $validated['slug'] ?: null;
 
         $board = DB::transaction(function () use ($validated): Board {
             $board = Board::create($validated);
@@ -338,6 +341,7 @@ class BoardController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', 'unique:boards,slug,'.$board->id],
             'description' => ['nullable', 'string', 'max:1000'],
             'team_row' => ['required', 'string', 'max:100'],
             'team_col' => ['required', 'string', 'max:100'],
@@ -352,6 +356,8 @@ class BoardController extends Controller
         // Convert price from dollars to cents
         $validated['price_per_square'] = (int) round((float) $validated['price_per_square'] * 100);
         $validated['is_public'] = $validated['is_public'] ?? false;
+        // Convert empty slug to null
+        $validated['slug'] = $validated['slug'] ?: null;
 
         $board->update($validated);
 
