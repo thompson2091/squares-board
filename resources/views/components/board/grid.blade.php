@@ -77,10 +77,12 @@
         </div>
     </div>
 
-    {{-- Mobile Instructions --}}
-    <div class="mt-4 text-center text-sm text-gray-500 sm:hidden">
-        {{ __('Scroll horizontally to see the full grid') }}
-    </div>
+    {{-- Instructions --}}
+    @if($board->isOpen())
+        <div class="mt-4 text-center text-sm text-gray-500">
+            {{ __('Click a square to claim it') }}
+        </div>
+    @endif
 
     {{-- Edit Name Modal --}}
     <div
