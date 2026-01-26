@@ -158,6 +158,23 @@ class Board extends Model
     }
 
     /**
+     * Get payment instructions with links set to open in new tabs.
+     */
+    public function getPaymentInstructionsHtmlAttribute(): string
+    {
+        if ($this->payment_instructions === null) {
+            return '';
+        }
+
+        // Add target="_blank" and rel="noopener noreferrer" to all links
+        return (string) preg_replace(
+            '/<a\s+href=/i',
+            '<a target="_blank" rel="noopener noreferrer" href=',
+            clean($this->payment_instructions)
+        );
+    }
+
+    /**
      * Get the owner of the board.
      *
      * @return BelongsTo<User, $this>

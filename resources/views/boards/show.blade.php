@@ -293,7 +293,7 @@
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div class="p-4">
                                 <h3 class="text-sm font-semibold text-gray-900 mb-2">{{ __('Payment & Payout Info') }}</h3>
-                                <div class="text-sm text-gray-600 payment-instructions prose prose-sm max-w-none">{!! clean($board->payment_instructions) !!}</div>
+                                <div class="text-sm text-gray-600 payment-instructions prose prose-sm max-w-none">{!! $board->payment_instructions_html !!}</div>
                             </div>
                         </div>
                     @endif
