@@ -192,12 +192,16 @@
                         {{-- Payment & Payout Info --}}
                         <div>
                             <x-input-label for="payment_instructions" :value="__('Payment & Payout Info (Optional)')" />
-                            <textarea
+                            <input
                                 id="payment_instructions"
+                                type="hidden"
                                 name="payment_instructions"
-                                rows="3"
-                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                            >{{ old('payment_instructions', $board->payment_instructions) }}</textarea>
+                                value="{{ old('payment_instructions', $board->payment_instructions) }}"
+                            />
+                            <trix-editor
+                                input="payment_instructions"
+                                class="mt-1 trix-content prose prose-sm max-w-none border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            ></trix-editor>
                             <p class="mt-1 text-sm text-gray-500">{{ __('Tell players how to pay for squares and how winners will be paid.') }}</p>
                             <x-input-error class="mt-2" :messages="$errors->get('payment_instructions')" />
                         </div>

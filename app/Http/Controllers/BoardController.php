@@ -361,7 +361,7 @@ class BoardController extends Controller
 
         $board->update($validated);
 
-        return redirect()->route('boards.show', $board)
+        return redirect($board->url)
             ->with('success', 'Board updated successfully!');
     }
 
@@ -386,7 +386,7 @@ class BoardController extends Controller
         Gate::authorize('update', $board);
 
         if ($board->status !== Board::STATUS_OPEN) {
-            return redirect()->route('boards.show', $board)
+            return redirect($board->url)
                 ->with('error', 'Board can only be locked when it is open.');
         }
 
@@ -400,7 +400,7 @@ class BoardController extends Controller
             'numbers_revealed' => true,
         ]);
 
-        return redirect()->route('boards.show', $board)
+        return redirect($board->url)
             ->with('success', 'Board has been locked and numbers revealed!');
     }
 
