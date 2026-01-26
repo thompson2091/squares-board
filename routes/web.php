@@ -121,3 +121,11 @@ Route::middleware(['auth', 'verified', 'platform.admin'])->prefix('admin')->name
     Route::patch('/users/{user}/role', [Admin\UserController::class, 'updateRole'])->name('users.update-role');
     Route::get('/boards', [Admin\BoardController::class, 'index'])->name('boards.index');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Short Board URL (must be last to avoid conflicts)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/{board}', [BoardController::class, 'show'])->name('boards.show.short');

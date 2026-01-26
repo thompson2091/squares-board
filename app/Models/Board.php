@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 /**
  * @property int $id
  * @property string $uuid
+ * @property string|null $slug
  * @property int $owner_id
  * @property string $name
  * @property string|null $description
@@ -68,6 +69,7 @@ class Board extends Model
      */
     protected $fillable = [
         'uuid',
+        'slug',
         'owner_id',
         'name',
         'description',
@@ -120,6 +122,39 @@ class Board extends Model
     public function getRouteKeyName(): string
     {
         return 'uuid';
+    }
+
+    /**
+     * Resolve the model for route binding (supports both UUID and slug).
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        // If a specific field is requested, use standard binding
+        if ($field !== null) {
+            return $this->where($field, $value)->first();
+        }
+
+        // Check if value looks like a UUID (has dashes in UUID format)
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value)) {
+            return $this->where('uuid', $value)->first();
+        }
+
+        // Otherwise try slug first, then uuid as fallback
+        return $this->where('slug', $value)->first()
+            ?? $this->where('uuid', $value)->first();
+    }
+
+    /**
+     * Get the URL for the board (prefers slug over uuid).
+     */
+    public function getUrlAttribute(): string
+    {
+        return $this->slug !== null
+            ? url('/'.$this->slug)
+            : route('boards.show', $this);
     }
 
     /**

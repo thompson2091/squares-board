@@ -35,6 +35,26 @@
                             <x-input-error class="mt-2" :messages="$errors->get('name')" />
                         </div>
 
+                        {{-- URL Slug --}}
+                        <div>
+                            <x-input-label for="slug" :value="__('Custom URL (Optional)')" />
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                    {{ url('/') }}/
+                                </span>
+                                <x-text-input
+                                    id="slug"
+                                    name="slug"
+                                    type="text"
+                                    class="flex-1 block w-full rounded-none rounded-r-md"
+                                    :value="old('slug', $board->slug)"
+                                    placeholder="superbowl-2025"
+                                />
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">{{ __('Letters, numbers, dashes, and underscores only. Leave blank to use the default URL.') }}</p>
+                            <x-input-error class="mt-2" :messages="$errors->get('slug')" />
+                        </div>
+
                         {{-- Description --}}
                         <div>
                             <x-input-label for="description" :value="__('Description (Optional)')" />
