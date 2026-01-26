@@ -207,3 +207,48 @@
         linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
     background-size: 50px 50px;
 }
+
+/* Trix Editor Customizations */
+trix-editor {
+    @apply min-h-[120px] bg-white;
+}
+
+trix-editor:focus {
+    @apply ring-2 ring-indigo-500 border-indigo-500;
+}
+
+/* Hide file attachment button - not needed for payment instructions */
+trix-toolbar .trix-button-group--file-tools {
+    display: none;
+}
+
+/* Style the toolbar to match the app */
+trix-toolbar {
+    @apply border border-gray-300 border-b-0 rounded-t-md bg-gray-50 p-2;
+}
+
+trix-toolbar .trix-button {
+    @apply border-gray-300 bg-white;
+}
+
+trix-toolbar .trix-button:hover {
+    @apply bg-gray-100;
+}
+
+trix-toolbar .trix-button.trix-active {
+    @apply bg-indigo-100 border-indigo-300;
+}
+
+trix-editor.trix-content {
+    @apply rounded-t-none border-t-0;
+}
+
+/* Style links in Trix editor */
+trix-editor a {
+    @apply text-indigo-600 underline hover:text-indigo-800;
+}
+
+/* Style links in payment instructions display */
+.payment-instructions a {
+    @apply text-indigo-600 underline hover:text-indigo-800;
+}
