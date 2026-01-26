@@ -23,5 +23,9 @@
     },
     "lint-staged": {
         "*.php": "sh -c 'docker compose run --rm -T composer exec pint && docker compose run --rm -T composer exec phpstan analyse && docker compose run --rm -T artisan test'"
+    },
+    "dependencies": {
+        "@tailwindcss/typography": "^0.5.19",
+        "trix": "^2.1.16"
     }
 }
