@@ -379,6 +379,25 @@ class BoardController extends Controller
     }
 
     /**
+     * Display the print-friendly version of the board.
+     */
+    public function print(Board $board): View
+    {
+        $board->load(['squares.user', 'payoutRules']);
+
+        // Organize squares into a 10x10 grid
+        $grid = [];
+        foreach ($board->squares as $square) {
+            $grid[$square->row][$square->col] = $square;
+        }
+
+        return view('boards.print', [
+            'board' => $board,
+            'grid' => $grid,
+        ]);
+    }
+
+    /**
      * Lock the board to prevent further square claims.
      */
     public function lock(Board $board): RedirectResponse

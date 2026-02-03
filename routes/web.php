@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // View individual board (public boards viewable without auth)
     Route::get('/boards/{board:uuid}', [BoardController::class, 'show'])->name('boards.show')->withoutMiddleware(['auth', 'verified']);
+    Route::get('/boards/{board:uuid}/print', [BoardController::class, 'print'])->name('boards.print')->withoutMiddleware(['auth', 'verified']);
 
     // Board management (authenticated users)
     Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
