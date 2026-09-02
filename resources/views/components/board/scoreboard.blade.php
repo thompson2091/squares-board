@@ -9,7 +9,7 @@
     $latestScore = $gameScores->last();
 
     // Check if board has 2MW payout rules configured
-    $has2mwPayouts = $board->payoutRules->contains('winner_type', '2mw');
+    $has2mwPayouts = $board->effective_payout_rules->contains('winner_type', '2mw');
 
     // Quarter display config
     $quarterConfig = [

@@ -7,7 +7,7 @@
     $paymentPercent = $paidCount;
 
     // Group payout rules by quarter for display
-    $payoutsByQuarter = $board->payoutRules->groupBy('quarter');
+    $payoutsByQuarter = $board->effective_payout_rules->groupBy('quarter');
     $quarterConfig = [
         'Q1' => ['label' => 'Q1', 'bg' => 'bg-amber-50', 'border' => 'border-amber-200'],
         'Q2' => ['label' => 'Q2', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-200'],
@@ -34,7 +34,7 @@
         </div>
 
         {{-- Payouts Section --}}
-        @if($board->payoutRules->isNotEmpty())
+        @if($board->effective_payout_rules->isNotEmpty())
             <div class="pt-3 border-t border-gray-200">
                 <h4 class="text-sm font-semibold text-gray-900 mb-3">{{ __('Payouts') }}</h4>
 
@@ -65,7 +65,7 @@
                 {{-- Payout Legend --}}
                 <div class="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
                     @foreach($winnerTypes as $type => $config)
-                        @if($board->payoutRules->contains('winner_type', $type))
+                        @if($board->effective_payout_rules->contains('winner_type', $type))
                             <div class="flex items-center gap-1">
                                 <span class="w-2 h-2 rounded-full {{ $config['dot'] }}"></span>
                                 <span>{{ $config['label'] }}</span>

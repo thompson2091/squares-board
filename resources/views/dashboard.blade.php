@@ -87,6 +87,10 @@
                         </div>
                     </div>
 
+                    {{-- Season Pools. Their weekly boards are filtered out of
+                         the board lists, so this is how you get back to one. --}}
+                    <x-season.list :seasons="$seasons" />
+
                     {{-- Boards You Own --}}
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">

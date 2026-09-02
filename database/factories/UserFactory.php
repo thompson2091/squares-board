@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,7 +30,21 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Mirror the database defaults so factory-made users behave like
+            // real ones without needing a refresh.
+            'role' => User::ROLE_PLAYER,
+            'is_approved_creator' => false,
         ];
+    }
+
+    /**
+     * A user who is allowed to create boards and seasons.
+     */
+    public function creator(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_approved_creator' => true,
+        ]);
     }
 
     /**

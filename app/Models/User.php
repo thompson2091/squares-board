@@ -116,7 +116,9 @@ class User extends Authenticatable
      */
     public function isApprovedCreator(): bool
     {
-        return $this->is_approved_creator;
+        // The column has a database default, but a freshly created model
+        // instance won't have it loaded, so guard against null.
+        return (bool) $this->is_approved_creator;
     }
 
     /**

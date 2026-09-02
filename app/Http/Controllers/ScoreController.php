@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\GameScore;
+use App\Models\Season;
+use App\Services\SeasonService;
 use App\Services\WinnerCalculatorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,7 +35,7 @@ class ScoreController extends Controller
             ->toArray();
 
         // Get quarters that have 2MW payout rules configured
-        $quartersWith2mw = $board->payoutRules()
+        $quartersWith2mw = $board->effective_payout_rules
             ->where('winner_type', '2mw')
             ->pluck('quarter')
             ->toArray();
@@ -62,6 +64,14 @@ class ScoreController extends Controller
             'team_col_2mw_score' => ['nullable', 'integer', 'min:0', 'max:999'],
             'is_final' => ['sometimes', 'boolean'],
         ]);
+
+        // A season week reveals itself the moment its first score lands, so the
+        // organizer can't leave players staring at "?" during the game. This
+        // also draws the numbers when the season is on manual draw.
+        if ($board->isSeasonWeek() && ! $board->numbers_revealed) {
+            app(SeasonService::class)->revealWeek($board);
+            $board->refresh();
+        }
 
         // Check if board has numbers assigned
         if (empty($board->row_numbers) || empty($board->col_numbers)) {
@@ -150,6 +160,13 @@ class ScoreController extends Controller
 
         $board->update(['status' => Board::STATUS_COMPLETED]);
 
+        // A season finishes when its last week does.
+        $season = $board->season;
+
+        if ($season !== null && ! $season->weekBoards()->where('status', '!=', Board::STATUS_COMPLETED)->exists()) {
+            $season->update(['status' => Season::STATUS_COMPLETED]);
+        }
+
         return back()->with('success', 'Board marked as completed! All winners have been finalized.');
     }
 
@@ -169,7 +186,7 @@ class ScoreController extends Controller
         }
 
         // Get quarters that have 2MW payout rules configured
-        $quartersWith2mw = $board->payoutRules()
+        $quartersWith2mw = $board->effective_payout_rules
             ->where('winner_type', '2mw')
             ->pluck('quarter')
             ->toArray();

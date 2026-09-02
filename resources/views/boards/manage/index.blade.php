@@ -48,8 +48,23 @@
                 </div>
             @endif
 
+            {{-- Season boards are locked and drawn from the season dashboard --}}
+            @if($board->season_id !== null && $board->season)
+                <div class="mb-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="font-medium text-indigo-900">{{ __('This board is part of a season pool') }}</p>
+                        <p class="text-sm text-indigo-700">
+                            {{ __('Locking, number draws and weekly matchups are all handled from the season dashboard.') }}
+                        </p>
+                    </div>
+                    <a href="{{ route('manage.seasons.index', $board->season) }}" class="flex-shrink-0 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
+                        {{ __('Manage Season') }}
+                    </a>
+                </div>
+            @endif
+
             {{-- Board Full Notice --}}
-            @if(($claimedCount ?? 0) >= 100 && $board->isOpen())
+            @if(($claimedCount ?? 0) >= 100 && $board->isOpen() && $board->season_id === null)
                 <div class="mb-6 bg-violet-50 border border-violet-200 rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -75,7 +90,7 @@
             @endif
 
             {{-- Numbers Not Drawn Notice --}}
-            @if($board->isLocked() && (empty($board->row_numbers) || empty($board->col_numbers)))
+            @if($board->isLocked() && (empty($board->row_numbers) || empty($board->col_numbers)) && $board->season_id === null)
                 <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">

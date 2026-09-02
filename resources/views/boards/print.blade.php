@@ -276,23 +276,39 @@
         <button class="close-btn" onclick="window.close()">Close</button>
     </div>
 
+    @php
+        // A season roster has no matchup - its placeholder team names would
+        // print as "Season vs Roster" - and its sheet is a signup list, so it
+        // drops the team labels and names the season instead.
+        $season = $board->season;
+        $isRoster = $board->isRoster();
+    @endphp
+
     <div class="header">
-        <h1>{{ $board->name }}</h1>
-        <p>{{ $board->team_row }} vs {{ $board->team_col }}@if($board->game_date) &mdash; {{ $board->game_date->format('M j, Y') }}@endif</p>
+        <h1>{{ $season !== null ? $season->name : $board->name }}</h1>
+        <p>
+            @if($isRoster)
+                Season roster &mdash; one square, all {{ $season?->total_weeks ?? 0 }} weeks
+            @else
+                @if($season !== null)Week {{ $board->week_number }} &mdash; @endif
+                {{ $board->team_row }} vs {{ $board->team_col }}@if($board->game_date) &mdash; {{ $board->game_date->format('M j, Y') }}@endif
+            @endif
+        </p>
     </div>
 
     <div class="container">
         <div class="grid-section">
             <div class="grid-wrapper">
-                <div class="row-team-label">{{ $board->team_row }}</div>
+                <div class="row-team-label">@if(! $isRoster){{ $board->team_row }}@endif</div>
                 <div class="grid-container">
-                    <div class="col-team-label">{{ $board->team_col }}</div>
+                    <div class="col-team-label">@if(! $isRoster){{ $board->team_col }}@endif</div>
                     <table class="grid">
                         <tr>
                             <th class="corner"></th>
                             @for($col = 0; $col < 10; $col++)
                                 <th>
-                                    @if($board->numbers_revealed && $board->col_numbers)
+                                    @if($isRoster)
+                                    @elseif($board->numbers_revealed && $board->col_numbers)
                                         {{ $board->col_numbers[$col] }}
                                     @else
                                         ?
@@ -303,7 +319,8 @@
                         @for($row = 0; $row < 10; $row++)
                             <tr>
                                 <th>
-                                    @if($board->numbers_revealed && $board->row_numbers)
+                                    @if($isRoster)
+                                    @elseif($board->numbers_revealed && $board->row_numbers)
                                         {{ $board->row_numbers[$row] }}
                                     @else
                                         ?
@@ -330,20 +347,27 @@
         <div class="payout-section">
             @php
                 $potTotal = $board->price_per_square * 100;
-                $payoutsByQuarter = $board->payoutRules->groupBy('quarter');
+                $payoutsByQuarter = $board->effective_payout_rules->groupBy('quarter');
                 $quarters = ['Q1', 'Q2', 'Q3', 'final'];
                 $quarterLabels = \App\Models\PayoutRule::QUARTER_LABELS;
             @endphp
 
             <div class="pot-box">
-                <div class="pot-label">Pot</div>
+                <div class="pot-label">{{ $season !== null ? 'Weekly Pot' : 'Pot' }}</div>
                 <div class="pot-amount">${{ number_format($potTotal / 100, 2) }}</div>
-                <div class="pot-per-square">${{ number_format($board->price_per_square / 100, 2) }} per square</div>
+                <div class="pot-per-square">
+                    @if($season !== null)
+                        ${{ number_format($board->price_per_square / 100, 2) }}/week &mdash;
+                        {{ $season->season_total_display }} per square for the season
+                    @else
+                        ${{ number_format($board->price_per_square / 100, 2) }} per square
+                    @endif
+                </div>
             </div>
 
-            <div class="payouts-header">Payouts</div>
+            <div class="payouts-header">{{ $season !== null ? 'Weekly Payouts' : 'Payouts' }}</div>
 
-            @if($board->payoutRules->isNotEmpty())
+            @if($board->effective_payout_rules->isNotEmpty())
                 <div class="quarters-grid">
                     @foreach($quarters as $quarter)
                         @php

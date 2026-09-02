@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\BuildsBoardView;
 use App\Models\Board;
-use App\Models\Square;
-use App\Models\User;
+use App\Models\Season;
+use App\Rules\AvailableSlug;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BoardController extends Controller
 {
+    use BuildsBoardView;
+
     /**
      * Display a listing of the user's boards.
      */
@@ -27,22 +29,26 @@ class BoardController extends Controller
             abort(401);
         }
 
-        // Get boards owned by user
-        $ownedBoards = Board::where('owner_id', $user->id)
+        // Season boards are excluded throughout - a season would otherwise add
+        // 19 rows to every list. Seasons get their own section instead.
+        $ownedBoards = Board::whereNull('season_id')
+            ->where('owner_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Get boards where user is a co-admin
-        $adminBoards = Board::whereHas('admins', function ($query) use ($user): void {
-            $query->where('user_id', $user->id);
-        })
+        $adminBoards = Board::whereNull('season_id')
+            ->whereHas('admins', function ($query) use ($user): void {
+                $query->where('user_id', $user->id);
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Get boards where user has claimed squares
-        $participatingBoards = Board::whereHas('squares', function ($query) use ($user): void {
-            $query->where('user_id', $user->id);
-        })
+        $participatingBoards = Board::whereNull('season_id')
+            ->whereHas('squares', function ($query) use ($user): void {
+                $query->where('user_id', $user->id);
+            })
             ->where('owner_id', '!=', $user->id)
             ->whereDoesntHave('admins', function ($query) use ($user): void {
                 $query->where('user_id', $user->id);
@@ -54,6 +60,7 @@ class BoardController extends Controller
             'ownedBoards' => $ownedBoards,
             'adminBoards' => $adminBoards,
             'participatingBoards' => $participatingBoards,
+            'seasons' => Season::forUser($user)->get(),
         ]);
     }
 
@@ -62,7 +69,8 @@ class BoardController extends Controller
      */
     public function browse(): View
     {
-        $boards = Board::where('is_public', true)
+        $boards = Board::whereNull('season_id')
+            ->where('is_public', true)
             ->where('status', Board::STATUS_OPEN)
             ->withCount(['squares as claimed_count' => function ($query): void {
                 $query->whereNotNull('user_id');
@@ -72,6 +80,9 @@ class BoardController extends Controller
 
         return view('boards.browse', [
             'boards' => $boards,
+            // Season rosters are excluded from the query above, so public
+            // seasons would otherwise be undiscoverable.
+            'seasons' => Season::publiclyOpen()->limit(12)->get(),
         ]);
     }
 
@@ -96,7 +107,7 @@ class BoardController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', 'unique:boards,slug'],
+            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', new AvailableSlug],
             'description' => ['nullable', 'string', 'max:1000'],
             'team_row' => ['required', 'string', 'max:100'],
             'team_col' => ['required', 'string', 'max:100'],
@@ -117,24 +128,7 @@ class BoardController extends Controller
 
         $board = DB::transaction(function () use ($validated): Board {
             $board = Board::create($validated);
-
-            // Generate all 100 squares
-            $squares = [];
-            $now = now();
-
-            for ($row = 0; $row < 10; $row++) {
-                for ($col = 0; $col < 10; $col++) {
-                    $squares[] = [
-                        'board_id' => $board->id,
-                        'row' => $row,
-                        'col' => $col,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                }
-            }
-
-            Square::insert($squares);
+            $board->seedSquares();
 
             return $board;
         });
@@ -145,162 +139,20 @@ class BoardController extends Controller
 
     /**
      * Display the specified board.
-     */
-    public function show(Request $request, Board $board): View
-    {
-        $board->load(['squares.user', 'owner', 'payoutRules', 'winners', 'gameScores']);
-
-        $user = Auth::user();
-        $userSquares = [];
-        $canClaim = false;
-        $isGuest = $user === null;
-        $autoClaimMessage = null;
-        $autoClaimError = null;
-
-        // Process pending claim from session (after login/registration)
-        if ($user !== null && $request->session()->has('pending_claim')) {
-            $pendingClaim = $request->session()->pull('pending_claim');
-
-            // Only process if this is the board they intended to claim on
-            if ($pendingClaim['board_uuid'] === $board->uuid) {
-                $result = $this->processPendingClaim($board, $user, $pendingClaim);
-                if ($result['success']) {
-                    $autoClaimMessage = $result['message'];
-                    // Reload squares to reflect the new claim
-                    $board->load(['squares.user']);
-                } else {
-                    $autoClaimError = $result['message'];
-                }
-            }
-        }
-
-        if ($user !== null) {
-            $userSquares = $board->squares
-                ->where('user_id', $user->id)
-                ->pluck('id')
-                ->toArray();
-            $canClaim = $board->canUserClaim($user);
-        }
-
-        // Organize squares into a 10x10 grid
-        $grid = [];
-        foreach ($board->squares as $square) {
-            $grid[$square->row][$square->col] = $square;
-        }
-
-        // Build winning squares map: square_id => [{type, quarter}, ...]
-        $winningSquares = [];
-        foreach ($board->winners as $winner) {
-            $squareId = $winner->square_id;
-            if (! isset($winningSquares[$squareId])) {
-                $winningSquares[$squareId] = [];
-            }
-
-            // Determine winner type from boolean flags
-            $type = 'primary';
-            if ($winner->is_2mw) {
-                $type = '2mw';
-            } elseif ($winner->is_touching) {
-                $type = 'touching';
-            } elseif ($winner->is_reverse) {
-                $type = 'reverse';
-            }
-
-            $winningSquares[$squareId][] = [
-                'type' => $type,
-                'quarter' => $winner->quarter,
-            ];
-        }
-
-        // Calculate payouts by display name for the sidebar leaderboard
-        // Group by display name so same user with different square names shows separately
-        $payoutsByDisplayName = $board->winners
-            ->load(['user', 'square'])
-            ->groupBy(function (\App\Models\Winner $winner): string {
-                return $winner->square->displayNameForSquare ?? $winner->user->name;
-            })
-            ->map(function ($winners, $displayName) {
-                $firstWinner = $winners->first();
-
-                return [
-                    'display_name' => $displayName,
-                    'user' => $firstWinner?->user,
-                    'total' => $winners->sum('payout_amount'),
-                    'wins' => $winners->count(),
-                ];
-            })
-            ->sortByDesc('total');
-
-        return view('boards.show', [
-            'board' => $board,
-            'grid' => $grid,
-            'userSquares' => $userSquares,
-            'canClaim' => $canClaim,
-            'isGuest' => $isGuest,
-            'boardIsOpen' => $board->isOpen(),
-            'isAdmin' => $user !== null && $board->isAdminUser($user),
-            'autoClaimMessage' => $autoClaimMessage,
-            'autoClaimError' => $autoClaimError,
-            'winningSquares' => $winningSquares,
-            'payoutsByDisplayName' => $payoutsByDisplayName,
-        ]);
-    }
-
-    /**
-     * Process a pending square claim after user authentication.
      *
-     * @param  array{board_uuid: string, row: int, col: int}  $pendingClaim
-     * @return array{success: bool, message: string}
+     * A board belonging to a season is always reached through SeasonController,
+     * which adds the season chrome; land people there instead of showing a week
+     * stripped of its context.
      */
-    private function processPendingClaim(Board $board, User $user, array $pendingClaim): array
+    public function show(Request $request, Board $board): View|RedirectResponse
     {
-        $row = $pendingClaim['row'];
-        $col = $pendingClaim['col'];
-
-        // Check if board is still open
-        if (! $board->isOpen()) {
-            return [
-                'success' => false,
-                'message' => 'This board is no longer open for claiming squares.',
-            ];
+        if ($board->season_id !== null && $board->season !== null) {
+            return $board->isRoster()
+                ? redirect($board->season->rosterUrl())
+                : redirect($board->season->weekUrl((int) $board->week_number));
         }
 
-        // Check if user can claim
-        if (! $board->canUserClaim($user)) {
-            return [
-                'success' => false,
-                'message' => sprintf(
-                    'You have reached the maximum of %d squares per user.',
-                    $board->max_squares_per_user
-                ),
-            ];
-        }
-
-        // Get the square
-        $square = $board->getSquareAt($row, $col);
-
-        if ($square === null) {
-            return [
-                'success' => false,
-                'message' => 'Square not found.',
-            ];
-        }
-
-        // Check if square is already claimed
-        if ($square->isClaimed()) {
-            return [
-                'success' => false,
-                'message' => 'Sorry, that square was claimed while you were registering. Please choose another.',
-            ];
-        }
-
-        // Claim the square
-        $square->claim($user);
-
-        return [
-            'success' => true,
-            'message' => sprintf('Square at row %d, column %d has been claimed for you!', $row + 1, $col + 1),
-        ];
+        return view('boards.show', $this->buildBoardView($request, $board));
     }
 
     /**
@@ -341,7 +193,7 @@ class BoardController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', 'unique:boards,slug,'.$board->id],
+            'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', new AvailableSlug(ignoreBoardId: $board->id)],
             'description' => ['nullable', 'string', 'max:1000'],
             'team_row' => ['required', 'string', 'max:100'],
             'team_col' => ['required', 'string', 'max:100'],
@@ -383,7 +235,8 @@ class BoardController extends Controller
      */
     public function print(Board $board): View
     {
-        $board->load(['squares.user', 'payoutRules']);
+        // The season chain is what a week's effective payout rules read from.
+        $board->load(['squares.user', 'payoutRules', 'season.rosterBoard.payoutRules']);
 
         // Organize squares into a 10x10 grid
         $grid = [];
@@ -403,6 +256,13 @@ class BoardController extends Controller
     public function lock(Board $board): RedirectResponse
     {
         Gate::authorize('update', $board);
+
+        // Season boards are governed by the season: the roster locks when the
+        // season starts, and weeks reveal their numbers one at a time.
+        if ($board->season_id !== null && $board->season !== null) {
+            return redirect()->route('manage.seasons.index', $board->season)
+                ->with('error', 'Season boards are locked from the season dashboard.');
+        }
 
         if ($board->status !== Board::STATUS_OPEN) {
             return redirect($board->url)
@@ -429,6 +289,13 @@ class BoardController extends Controller
     public function generateNumbers(Board $board): RedirectResponse
     {
         Gate::authorize('update', $board);
+
+        // Each season week draws and reveals on its own schedule, and unlike a
+        // standalone board it does not need a full roster first.
+        if ($board->season_id !== null && $board->season !== null) {
+            return redirect()->route('manage.seasons.index', $board->season)
+                ->with('error', 'Draw a season week\'s numbers from the season dashboard.');
+        }
 
         // Only allow if board is full
         if (! $board->isFull()) {
