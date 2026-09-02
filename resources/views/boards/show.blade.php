@@ -17,15 +17,23 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
+                {{-- For a season week the matchup and date live in the season bar,
+                     so the header stays on the season itself. --}}
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ $board->name }}
+                    {{ isset($season) ? $season->name : $board->name }}
                 </h2>
                 <p class="text-sm text-gray-600 mt-1">
-                    {{ $board->team_row }} vs {{ $board->team_col }}
-                    @if($board->game_date)
+                    @isset($season)
+                        {{ __('Season pool') }}
                         <span class="mx-2">|</span>
-                        {{ $board->game_date->format('M j, Y g:i A') }}
-                    @endif
+                        {{ __(':n weeks', ['n' => $season->total_weeks]) }}
+                    @else
+                        {{ $board->team_row }} vs {{ $board->team_col }}
+                        @if($board->game_date)
+                            <span class="mx-2">|</span>
+                            {{ $board->game_date->format('M j, Y g:i A') }}
+                        @endif
+                    @endisset
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -253,8 +261,9 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="sm:px-6 lg:px-8 space-y-6">
+    {{-- Season weeks run tighter to the top so the grid stays above the fold --}}
+    <div class="{{ isset($season) ? 'py-4' : 'py-12' }}">
+        <div class="sm:px-6 lg:px-8 {{ isset($season) ? 'space-y-4' : 'space-y-6' }}">
             @if(session('success') || $autoClaimMessage)
                 <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
                     {{ session('success') ?? $autoClaimMessage }}
@@ -266,6 +275,16 @@
                     {{ session('error') ?? $autoClaimError }}
                 </div>
             @endif
+
+            {{-- Season chrome - only present when this board is one week of a season pool --}}
+            @isset($season)
+                <x-season.bar
+                    :season="$season"
+                    :week="$seasonWeek ?? null"
+                    :my-square-count="count($userSquares)"
+                    :my-winnings="$seasonWinnings ?? 0"
+                />
+            @endisset
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {{-- Main Grid Area --}}
@@ -331,8 +350,19 @@
                         </div>
                     @endif
 
-                    {{-- Admin Actions - Only show when board is full and open --}}
-                    @if($isAdmin && $board->isOpen() && $board->isFull())
+                    {{-- Season Leaders - how the week's result fits the whole season --}}
+                    @isset($seasonStandings)
+                        <x-season.leaders
+                            :standings="$seasonStandings"
+                            :viewer-id="auth()->id()"
+                            :standings-url="$season->standingsUrl()"
+                        />
+                    @endisset
+
+                    {{-- Admin Actions - Only show when board is full and open.
+                         Season weeks are locked from the start and reveal their
+                         numbers per week, so this never applies to them. --}}
+                    @if($isAdmin && $board->isOpen() && $board->isFull() && ! isset($season))
                         <div class="bg-violet-50 border border-violet-200 overflow-hidden sm:rounded-lg">
                             <div class="p-4">
                                 <div class="flex items-center mb-3">
@@ -353,7 +383,7 @@
                     @endif
 
                     {{-- Numbers Not Drawn Notice --}}
-                    @if($isAdmin && $board->isLocked() && (empty($board->row_numbers) || empty($board->col_numbers)))
+                    @if($isAdmin && $board->isLocked() && (empty($board->row_numbers) || empty($board->col_numbers)) && ! isset($season))
                         <div class="bg-blue-50 border border-blue-200 overflow-hidden sm:rounded-lg">
                             <div class="p-4">
                                 <div class="flex items-center mb-3">

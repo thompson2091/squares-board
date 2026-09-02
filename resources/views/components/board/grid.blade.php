@@ -1,4 +1,4 @@
-@props(['board', 'grid', 'userSquares' => [], 'canClaim' => false, 'isGuest' => false, 'boardIsOpen' => false, 'isAdmin' => false, 'winningSquares' => []])
+@props(['board', 'grid', 'userSquares' => [], 'canClaim' => false, 'isGuest' => false, 'boardIsOpen' => false, 'isAdmin' => false, 'winningSquares' => [], 'showTeamLabels' => true])
 
 @php
     // Guests can attempt to claim squares if board is open (they'll be redirected to login)
@@ -6,16 +6,20 @@
 @endphp
 
 <div x-data="squaresBoard()" @click.away="$store.board.activeModal = null" class="overflow-x-auto">
-    {{-- Column Team Header --}}
-    <div class="text-center mb-2">
-        <span class="text-lg font-bold text-gray-900">{{ $board->team_col }}</span>
-    </div>
+    {{-- Column Team Header. A season roster has no matchup, so it opts out. --}}
+    @if($showTeamLabels)
+        <div class="text-center mb-2">
+            <span class="text-lg font-bold text-gray-900">{{ $board->team_col }}</span>
+        </div>
+    @endif
 
     <div class="flex">
         {{-- Row Team Label (rotated) --}}
-        <div class="flex items-center justify-center w-8 mr-2">
-            <span class="text-lg font-bold text-gray-900 transform -rotate-90 whitespace-nowrap">{{ $board->team_row }}</span>
-        </div>
+        @if($showTeamLabels)
+            <div class="flex items-center justify-center w-8 mr-2">
+                <span class="text-lg font-bold text-gray-900 transform -rotate-90 whitespace-nowrap">{{ $board->team_row }}</span>
+            </div>
+        @endif
 
         <div class="flex-1">
             {{-- Column Numbers Header --}}

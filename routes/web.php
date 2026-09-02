@@ -7,7 +7,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PayoutController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicSlugController;
 use App\Http\Controllers\ScoreController;
+use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\SeasonManageController;
 use App\Http\Controllers\SquareController;
 use App\Http\Controllers\WinnerController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +78,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/boards/{board:uuid}/squares/{square}/release', [SquareController::class, 'release'])->name('squares.release');
     Route::patch('/boards/{board:uuid}/squares/{square}/name', [SquareController::class, 'updateName'])->name('squares.update-name');
 
+    // === Season Pools ===
+    // Creation and editing (must be before the {season} routes below)
+    Route::get('/seasons/create', [SeasonController::class, 'create'])->name('seasons.create');
+    Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
+    Route::get('/seasons/{season}/edit', [SeasonController::class, 'edit'])->name('seasons.edit');
+    Route::patch('/seasons/{season}', [SeasonController::class, 'update'])->name('seasons.update');
+    Route::delete('/seasons/{season}', [SeasonController::class, 'destroy'])->name('seasons.destroy');
+
+    // Public season views (viewable without auth, like boards)
+    Route::withoutMiddleware(['auth', 'verified'])->group(function () {
+        Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
+        Route::get('/seasons/{season}/roster', [SeasonController::class, 'showRoster'])->name('seasons.roster');
+        Route::get('/seasons/{season}/standings', [SeasonController::class, 'showStandings'])->name('seasons.standings');
+        Route::get('/seasons/{season}/week/{week}', [SeasonController::class, 'showWeek'])
+            ->whereNumber('week')->name('seasons.week');
+    });
+
+    // Season management
+    Route::prefix('manage/seasons/{season}')->name('manage.seasons.')->group(function () {
+        Route::get('/', [SeasonManageController::class, 'index'])->name('index');
+        Route::post('/start', [SeasonManageController::class, 'start'])->name('start');
+        Route::post('/weeks', [SeasonManageController::class, 'createWeeks'])->name('weeks.create');
+        Route::patch('/weeks', [SeasonManageController::class, 'updateWeeks'])->name('weeks.update');
+        Route::post('/weeks/{week}/reveal', [SeasonManageController::class, 'reveal'])
+            ->whereNumber('week')->name('weeks.reveal');
+    });
+
     // === AGENT 3: Board Management Routes ===
     Route::prefix('manage/boards/{board:uuid}')->name('manage.boards.')->group(function () {
         Route::get('/', [BoardController::class, 'manage'])->name('show');
@@ -125,8 +155,13 @@ Route::middleware(['auth', 'verified', 'platform.admin'])->prefix('admin')->name
 
 /*
 |--------------------------------------------------------------------------
-| Short Board URL (must be last to avoid conflicts)
+| Short Season & Board URLs (must be last to avoid conflicts)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/{board}', [BoardController::class, 'show'])->name('boards.show.short');
+Route::get('/{slug}/roster', [PublicSlugController::class, 'roster'])->name('seasons.roster.short');
+Route::get('/{slug}/standings', [PublicSlugController::class, 'standings'])->name('seasons.standings.short');
+Route::get('/{slug}/week/{week}', [PublicSlugController::class, 'week'])
+    ->whereNumber('week')->name('seasons.week.short');
+
+Route::get('/{slug}', [PublicSlugController::class, 'show'])->name('boards.show.short');

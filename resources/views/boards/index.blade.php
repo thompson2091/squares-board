@@ -26,6 +26,10 @@
                 </div>
             @endif
 
+            {{-- Season Pools. Their weekly boards are deliberately absent from
+                 the lists below, so this is the only way back into them. --}}
+            <x-season.list :seasons="$seasons" :title="__('Season Pools')" />
+
             {{-- Owned Boards --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">

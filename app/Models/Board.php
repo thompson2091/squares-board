@@ -16,6 +16,9 @@ use Illuminate\Support\Str;
  * @property string $uuid
  * @property string|null $slug
  * @property int $owner_id
+ * @property int|null $season_id
+ * @property int|null $week_number
+ * @property bool $is_roster
  * @property string $name
  * @property string|null $description
  * @property string $team_row
@@ -32,6 +35,8 @@ use Illuminate\Support\Str;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read User $owner
+ * @property-read Season|null $season
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, PayoutRule> $effectivePayoutRules
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Square> $squares
  * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $admins
  * @property-read \Illuminate\Database\Eloquent\Collection<int, PayoutRule> $payoutRules
@@ -71,6 +76,9 @@ class Board extends Model
         'uuid',
         'slug',
         'owner_id',
+        'season_id',
+        'week_number',
+        'is_roster',
         'name',
         'description',
         'team_row',
@@ -101,6 +109,8 @@ class Board extends Model
             'is_public' => 'boolean',
             'price_per_square' => 'integer',
             'max_squares_per_user' => 'integer',
+            'is_roster' => 'boolean',
+            'week_number' => 'integer',
         ];
     }
 
@@ -185,6 +195,16 @@ class Board extends Model
     }
 
     /**
+     * Get the season this board belongs to, if any.
+     *
+     * @return BelongsTo<Season, $this>
+     */
+    public function season(): BelongsTo
+    {
+        return $this->belongsTo(Season::class);
+    }
+
+    /**
      * Get all squares on this board.
      *
      * @return HasMany<Square, $this>
@@ -192,6 +212,67 @@ class Board extends Model
     public function squares(): HasMany
     {
         return $this->hasMany(Square::class);
+    }
+
+    /**
+     * Whether this board is a season's roster - the master list of who owns
+     * which square for the whole season.
+     */
+    public function isRoster(): bool
+    {
+        return $this->is_roster === true;
+    }
+
+    /**
+     * Whether this board is one week of a season.
+     */
+    public function isSeasonWeek(): bool
+    {
+        return $this->season_id !== null && ! $this->isRoster();
+    }
+
+    /**
+     * The payout rules that actually apply to this board.
+     *
+     * A season's rules are shared by every week and stored once on the roster
+     * board, so weekly boards never carry their own.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, PayoutRule>
+     */
+    public function getEffectivePayoutRulesAttribute(): \Illuminate\Database\Eloquent\Collection
+    {
+        if (! $this->isSeasonWeek()) {
+            return $this->payoutRules;
+        }
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, PayoutRule> $rules */
+        $rules = $this->season?->roster()->payoutRules
+            ?? new \Illuminate\Database\Eloquent\Collection;
+
+        return $rules;
+    }
+
+    /**
+     * Create this board's 100 squares.
+     */
+    public function seedSquares(): void
+    {
+        $squares = [];
+        $now = now();
+
+        for ($row = 0; $row < 10; $row++) {
+            for ($col = 0; $col < 10; $col++) {
+                $squares[] = [
+                    'board_id' => $this->id,
+                    'row' => $row,
+                    'col' => $col,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        Square::insert($squares);
     }
 
     /**
@@ -251,7 +332,7 @@ class Board extends Model
      */
     public function isFull(): bool
     {
-        return $this->squares()->whereNotNull('user_id')->count() >= 100;
+        return $this->claimedSquareCount() >= 100;
     }
 
     /**
@@ -273,6 +354,10 @@ class Board extends Model
      */
     public function userSquareCount(User $user): int
     {
+        if ($this->relationLoaded('squares')) {
+            return $this->squares->where('user_id', $user->id)->count();
+        }
+
         return $this->squares()->where('user_id', $user->id)->count();
     }
 
@@ -281,6 +366,10 @@ class Board extends Model
      */
     public function claimedSquareCount(): int
     {
+        if ($this->relationLoaded('squares')) {
+            return $this->squares->whereNotNull('user_id')->count();
+        }
+
         return $this->squares()->whereNotNull('user_id')->count();
     }
 
@@ -289,6 +378,10 @@ class Board extends Model
      */
     public function paidSquareCount(): int
     {
+        if ($this->relationLoaded('squares')) {
+            return $this->squares->where('is_paid', true)->count();
+        }
+
         return $this->squares()->where('is_paid', true)->count();
     }
 
