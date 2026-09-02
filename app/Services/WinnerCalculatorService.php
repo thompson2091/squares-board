@@ -58,10 +58,10 @@ class WinnerCalculatorService
             return $winners;
         }
 
-        // Get payout rules for this quarter
-        $payoutRules = $board->payoutRules()
-            ->where('quarter', $quarter)
-            ->get();
+        // Get payout rules for this quarter. A season's rules are shared by
+        // every week and stored once on its roster board.
+        $payoutRules = $board->effective_payout_rules
+            ->where('quarter', $quarter);
 
         // Calculate pot total for percentage-based payouts
         $potTotal = $this->calculatePotTotal($board);

@@ -80,6 +80,11 @@ class BoardPolicy
      */
     public function delete(User $user, Board $board): bool
     {
+        // Season boards are only ever deleted with their season, which cascades.
+        if ($board->season_id !== null) {
+            return false;
+        }
+
         // Only owner can delete
         return $board->owner_id === $user->id;
     }

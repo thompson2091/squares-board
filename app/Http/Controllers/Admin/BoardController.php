@@ -16,7 +16,10 @@ class BoardController extends Controller
      */
     public function index(Request $request): View
     {
+        // Season weeks are hidden here too - a single season would otherwise
+        // dominate the list. Season rosters are kept, so seasons stay visible.
         $query = Board::with('owner')
+            ->where(fn ($query) => $query->whereNull('season_id')->orWhere('is_roster', true))
             ->withCount(['squares as claimed_count' => function ($query): void {
                 $query->whereNotNull('user_id');
             }]);

@@ -7,6 +7,14 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            {{-- Public season pools. Their boards are excluded from the grid
+                 below, so this is the only place they can be found. --}}
+            @if($seasons->isNotEmpty())
+                <div class="mb-8">
+                    <x-season.list :seasons="$seasons" :title="__('Public Season Pools')" />
+                </div>
+            @endif
+
             @if($boards->isEmpty())
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-12 text-center">

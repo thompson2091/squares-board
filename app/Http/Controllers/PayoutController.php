@@ -15,9 +15,15 @@ class PayoutController extends Controller
     /**
      * Display the payout rules configuration page.
      */
-    public function index(Board $board): View
+    public function index(Board $board): View|RedirectResponse
     {
         $this->authorize('manage', $board);
+
+        // A season's rules are shared by every week and live on its roster
+        // board; rules added to a week would simply be ignored.
+        if ($board->isSeasonWeek() && $board->season?->roster() !== null) {
+            return redirect()->route('manage.boards.payouts.index', $board->season->roster());
+        }
 
         $payoutRules = $board->payoutRules()
             ->orderByRaw("FIELD(quarter, 'Q1', 'Q2', 'Q3', 'final')")
